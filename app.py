@@ -1,6 +1,8 @@
 import os
 import pdfplumber
 import docx
+import re
+import spacy
 from flask import Flask , request
 
 fl = Flask(__name__)
@@ -10,6 +12,8 @@ fl.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+nlp = spacy.load("en_core_web_sm")
 
 #Extract Text From Docx or PDF
 

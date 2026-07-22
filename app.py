@@ -2,6 +2,7 @@ import os
 import pdfplumber
 import docx
 import re
+import traceback
 import spacy
 from flask import Flask , request
 from spacy.matcher import PhraseMatcher
@@ -49,7 +50,7 @@ def skills_extract(text):
         found = set()
 
         # Full SKill Match
-        for match in annotations["results"]["full match"]:
+        for match in annotations["results"]["full_matches"]:
             found.add(match["doc_node_value"])
         
         #Partial Match
@@ -57,8 +58,10 @@ def skills_extract(text):
             found.add(match["doc_node_value"])
 
         return list(found)
-    except Exception as e:
-        print("Skills Extraction Error", e)
+    except Exception:
+        print("---- SKILL EXTRACTION ERROR (full details) ----")
+        traceback.print_exc()
+        print("------------------------------------------------")
         return []
 
 # Email, Phone, Name Extraction

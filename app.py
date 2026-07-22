@@ -4,6 +4,7 @@ import docx
 import re
 import traceback
 import spacy
+import anthropic
 from flask import Flask , request
 from spacy.matcher import PhraseMatcher
 from skillNer.general_params import SKILL_DB
@@ -19,9 +20,12 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 nlp = spacy.load("en_core_web_sm")
 
-# SKill Extractor From Large DB
+# Import Claude For Name Extracting
 
-skill_extractor = SkillExtractor(nlp, SKILL_DB, PhraseMatcher)
+claude_client = anthropic.Anthropic(
+    base_url = "Paste Your Claude API Base URL Here",
+    api_key = "Paste Your Claude API Here"
+)
 
 # Extract Text From PDF
 
@@ -44,6 +48,11 @@ def text_from_docs(file_path):
     return text
 
 #Skills Extractor
+
+# SKill Extractor From Large DB
+
+skill_extractor = SkillExtractor(nlp, SKILL_DB, PhraseMatcher)
+
 def skills_extract(text):
     try:
         annotations = skill_extractor.annotate(text)
@@ -64,6 +73,33 @@ def skills_extract(text):
         print("------------------------------------------------")
         return []
 
+# Name Extractor DEF 
+
+def name_extract(text):
+    try:
+        top_text = text[:400]
+
+        message = claude_client.messages.create(
+            model = "auto",
+            max_tokens = 200,
+            messages = [{
+                "role": "user",
+                "content": f"Extract only the candidate's full name from this resume text. Reply with ONLY the name, nothing else. If no name is found, reply with 'Not found'.\n\nResume text:\n{top_text}"
+            }]
+        )
+
+        # Extract only the text
+        text_only = ""
+        if message.content:
+            for block in message.content:
+                if hasattr(block, "text"):
+                    text_only += block.text
+        
+        return text_only.strip() or "Not found"
+    except Exception:
+        print(f"----- Name Extraction Error -----")
+        return "Not found"
+
 # Email, Phone, Name Extraction
 
 def extract_details(text):
@@ -80,12 +116,7 @@ def extract_details(text):
     found_skills = skills_extract(text)
 
     # Names Extraction
-    doc = nlp(text)
-    name = "Not Found"
-    for ent in doc.ents:
-        if ent.label == "PERSON":
-            name = ent.text
-            break
+    name = name_extract(text)
     
     return {
         "name": name,
@@ -95,7 +126,7 @@ def extract_details(text):
     }
 @fl.route('/')
 def home():
-    return "Resume Shortlister is running!"
+    return "======== AI Based Resume Shortlisting Project Is Running ========"
 
 @fl.route('/upload', methods = ['GET', 'POST'])
 def upload_resume():

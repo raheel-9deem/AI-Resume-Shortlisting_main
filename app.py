@@ -23,8 +23,8 @@ nlp = spacy.load("en_core_web_sm")
 # Import Claude For Name Extracting
 
 claude_client = anthropic.Anthropic(
-    base_url = "Paste Your Claude API Base URL Here",
-    api_key = "Paste Your Claude API Here"
+    base_url = "https://api.hcnsec.cn/",
+    api_key = "sk-fObRBR2ZniByOivLn6GGWizh7YKzfOL18qPOpbplRvn8xwne"
 )
 
 # Extract Text From PDF
@@ -81,7 +81,7 @@ def name_extract(text):
 
         message = claude_client.messages.create(
             model = "auto",
-            max_tokens = 200,
+            max_tokens = 400,
             messages = [{
                 "role": "user",
                 "content": f"Extract only the candidate's full name from this resume text. Reply with ONLY the name, nothing else. If no name is found, reply with 'Not found'.\n\nResume text:\n{top_text}"

@@ -46,7 +46,7 @@ def text_from_docs(file_path):
     doc = docx.Document(file_path)
     text = ""
     for para in doc.paragraphs:
-        text += para.text + "\n"
+        text += para.text
     return text
 
 
